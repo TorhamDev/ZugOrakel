@@ -1,0 +1,526 @@
+[
+  {
+    "name": "Aachen Hbf",
+    "eva": "08000001"
+  },
+  {
+    "name": "Aschaffenburg Hbf",
+    "eva": "08000010"
+  },
+  {
+    "name": "Augsburg Hbf",
+    "eva": "08000013"
+  },
+  {
+    "name": "Bad Oldesloe",
+    "eva": "08000023"
+  },
+  {
+    "name": "Bamberg",
+    "eva": "08000025"
+  },
+  {
+    "name": "Berlin Friedrichstraße",
+    "eva": "08089066"
+  },
+  {
+    "name": "Berlin Friedrichstraße",
+    "eva": "08011306"
+  },
+  {
+    "name": "Berlin Gesundbrunnen",
+    "eva": "08089015"
+  },
+  {
+    "name": "Berlin Gesundbrunnen",
+    "eva": "08011102"
+  },
+  {
+    "name": "Berlin Hauptbahnhof",
+    "eva": "08089021"
+  },
+  {
+    "name": "Berlin Hauptbahnhof",
+    "eva": "08098160"
+  },
+  {
+    "name": "Berlin Hauptbahnhof",
+    "eva": "08011160"
+  },
+  {
+    "name": "Berlin Ostbahnhof",
+    "eva": "08089185"
+  },
+  {
+    "name": "Berlin Ostbahnhof",
+    "eva": "08010255"
+  },
+  {
+    "name": "Berlin Ostkreuz",
+    "eva": "08089028"
+  },
+  {
+    "name": "Berlin Ostkreuz",
+    "eva": "08011162"
+  },
+  {
+    "name": "Berlin Potsdamer Platz",
+    "eva": "08089032"
+  },
+  {
+    "name": "Berlin Potsdamer Platz",
+    "eva": "08011118"
+  },
+  {
+    "name": "Berlin Südkreuz",
+    "eva": "08089073"
+  },
+  {
+    "name": "Berlin Südkreuz",
+    "eva": "08011113"
+  },
+  {
+    "name": "Berlin Zoologischer Garten",
+    "eva": "08089046"
+  },
+  {
+    "name": "Berlin Zoologischer Garten",
+    "eva": "08010406"
+  },
+  {
+    "name": "Berlin-Lichtenberg",
+    "eva": "08089182"
+  },
+  {
+    "name": "Berlin-Lichtenberg",
+    "eva": "08010036"
+  },
+  {
+    "name": "Berlin-Spandau",
+    "eva": "08010404"
+  },
+  {
+    "name": "Berlin-Spandau",
+    "eva": "08089083"
+  },
+  {
+    "name": "Berlin-Wannsee",
+    "eva": "08089190"
+  },
+  {
+    "name": "Berlin-Wannsee",
+    "eva": "08010405"
+  },
+  {
+    "name": "Bielefeld Hbf",
+    "eva": "08000036"
+  },
+  {
+    "name": "Bietigheim-Bissingen",
+    "eva": "08000038"
+  },
+  {
+    "name": "Bochum Hbf",
+    "eva": "08000041"
+  },
+  {
+    "name": "Bonn Hbf",
+    "eva": "08000044"
+  },
+  {
+    "name": "Braunschweig Hbf",
+    "eva": "08000049"
+  },
+  {
+    "name": "Bremen Hbf",
+    "eva": "08000050"
+  },
+  {
+    "name": "Bruchsal",
+    "eva": "08000055"
+  },
+  {
+    "name": "Chemnitz Hbf",
+    "eva": "08010184"
+  },
+  {
+    "name": "Cottbus Hbf",
+    "eva": "08010073"
+  },
+  {
+    "name": "Darmstadt Hbf",
+    "eva": "08000068"
+  },
+  {
+    "name": "Dortmund Hbf",
+    "eva": "08000080"
+  },
+  {
+    "name": "Dresden Hbf",
+    "eva": "08010085"
+  },
+  {
+    "name": "Dresden-Neustadt",
+    "eva": "08010089"
+  },
+  {
+    "name": "Duisburg Hbf",
+    "eva": "08000086"
+  },
+  {
+    "name": "Düsseldorf Hbf",
+    "eva": "08000085"
+  },
+  {
+    "name": "Erfurt Hbf",
+    "eva": "08010101"
+  },
+  {
+    "name": "Essen Hbf",
+    "eva": "08000098"
+  },
+  {
+    "name": "Flughafen BER",
+    "eva": "08089201"
+  },
+  {
+    "name": "Flughafen BER",
+    "eva": "08011201"
+  },
+  {
+    "name": "Frankfurt (Main) Hbf",
+    "eva": "08098105"
+  },
+  {
+    "name": "Frankfurt (Main) Hbf",
+    "eva": "08000105"
+  },
+  {
+    "name": "Frankfurt (Main) Süd",
+    "eva": "08002041"
+  },
+  {
+    "name": "Frankfurt (Oder)",
+    "eva": "08010113"
+  },
+  {
+    "name": "Freiburg (Breisgau) Hbf",
+    "eva": "08000107"
+  },
+  {
+    "name": "Fulda",
+    "eva": "08000115"
+  },
+  {
+    "name": "Fürth (Bay) Hbf",
+    "eva": "08000114"
+  },
+  {
+    "name": "Gelsenkirchen Hbf",
+    "eva": "08000118"
+  },
+  {
+    "name": "Gießen",
+    "eva": "08000124"
+  },
+  {
+    "name": "Göttingen",
+    "eva": "08000128"
+  },
+  {
+    "name": "Hagen Hbf",
+    "eva": "08000142"
+  },
+  {
+    "name": "Halle (Saale) Hbf",
+    "eva": "08010159"
+  },
+  {
+    "name": "Hamburg Dammtor",
+    "eva": "08002548"
+  },
+  {
+    "name": "Hamburg Hbf",
+    "eva": "08098549"
+  },
+  {
+    "name": "Hamburg Hbf",
+    "eva": "08002549"
+  },
+  {
+    "name": "Hamburg-Altona",
+    "eva": "08098553"
+  },
+  {
+    "name": "Hamburg-Altona",
+    "eva": "08002553"
+  },
+  {
+    "name": "Hamburg-Harburg",
+    "eva": "08098147"
+  },
+  {
+    "name": "Hamburg-Harburg",
+    "eva": "08000147"
+  },
+  {
+    "name": "Hamm (Westf) Hbf",
+    "eva": "08000149"
+  },
+  {
+    "name": "Hanau Hbf",
+    "eva": "08000150"
+  },
+  {
+    "name": "Hannover Hbf",
+    "eva": "08000152"
+  },
+  {
+    "name": "Heidelberg Hbf",
+    "eva": "08000156"
+  },
+  {
+    "name": "Herford",
+    "eva": "08000162"
+  },
+  {
+    "name": "Hildesheim Hbf",
+    "eva": "08000169"
+  },
+  {
+    "name": "Ingolstadt Hbf",
+    "eva": "08000183"
+  },
+  {
+    "name": "Kaiserslautern Hbf",
+    "eva": "08000189"
+  },
+  {
+    "name": "Karlsruhe Hbf",
+    "eva": "08000191"
+  },
+  {
+    "name": "Kassel Hbf",
+    "eva": "08000193"
+  },
+  {
+    "name": "Kassel-Wilhelmshöhe",
+    "eva": "08003200"
+  },
+  {
+    "name": "Kiel Hbf",
+    "eva": "08000199"
+  },
+  {
+    "name": "Koblenz Hbf",
+    "eva": "08000206"
+  },
+  {
+    "name": "Köln Hbf",
+    "eva": "08000207"
+  },
+  {
+    "name": "Köln Messe/Deutz",
+    "eva": "08003368"
+  },
+  {
+    "name": "Köln Messe/Deutz",
+    "eva": "08073368"
+  },
+  {
+    "name": "Landshut (Bay) Hbf",
+    "eva": "08000217"
+  },
+  {
+    "name": "Leipzig Hbf",
+    "eva": "08098205"
+  },
+  {
+    "name": "Leipzig Hbf",
+    "eva": "08010205"
+  },
+  {
+    "name": "Ludwigshafen (Rhein) Hbf",
+    "eva": "08000236"
+  },
+  {
+    "name": "Lübeck Hbf",
+    "eva": "08000237"
+  },
+  {
+    "name": "Lüneburg",
+    "eva": "08000238"
+  },
+  {
+    "name": "Magdeburg Hbf",
+    "eva": "08010224"
+  },
+  {
+    "name": "Mainz Hbf",
+    "eva": "08000240"
+  },
+  {
+    "name": "Mannheim Hbf",
+    "eva": "08000244"
+  },
+  {
+    "name": "Mönchengladbach Hbf",
+    "eva": "08000253"
+  },
+  {
+    "name": "München Hbf",
+    "eva": "08098263"
+  },
+  {
+    "name": "München Hbf",
+    "eva": "08000261"
+  },
+  {
+    "name": "München Hbf",
+    "eva": "08098261"
+  },
+  {
+    "name": "München Hbf",
+    "eva": "08098262"
+  },
+  {
+    "name": "München Ost",
+    "eva": "08000262"
+  },
+  {
+    "name": "München-Pasing",
+    "eva": "08004158"
+  },
+  {
+    "name": "Münster (Westf) Hbf",
+    "eva": "08000263"
+  },
+  {
+    "name": "Neumünster",
+    "eva": "08000271"
+  },
+  {
+    "name": "Neuss Hbf",
+    "eva": "08000274"
+  },
+  {
+    "name": "Neustadt (Weinstr) Hbf",
+    "eva": "08000275"
+  },
+  {
+    "name": "Nürnberg Hbf",
+    "eva": "08000284"
+  },
+  {
+    "name": "Oberhausen Hbf",
+    "eva": "08000286"
+  },
+  {
+    "name": "Offenburg",
+    "eva": "08000290"
+  },
+  {
+    "name": "Oldenburg (Oldb) Hbf",
+    "eva": "08000291"
+  },
+  {
+    "name": "Osnabrück Hbf",
+    "eva": "08000294"
+  },
+  {
+    "name": "Paderborn Hbf",
+    "eva": "08000297"
+  },
+  {
+    "name": "Pforzheim Hbf",
+    "eva": "08000299"
+  },
+  {
+    "name": "Plochingen",
+    "eva": "08000302"
+  },
+  {
+    "name": "Potsdam Hbf",
+    "eva": "08089184"
+  },
+  {
+    "name": "Potsdam Hbf",
+    "eva": "08012666"
+  },
+  {
+    "name": "Regensburg Hbf",
+    "eva": "08000309"
+  },
+  {
+    "name": "Rheine",
+    "eva": "08000316"
+  },
+  {
+    "name": "Rosenheim",
+    "eva": "08000320"
+  },
+  {
+    "name": "Rostock Hbf",
+    "eva": "08010304"
+  },
+  {
+    "name": "Saarbrücken Hbf",
+    "eva": "08000323"
+  },
+  {
+    "name": "Singen (Hohentwiel)",
+    "eva": "08000073"
+  },
+  {
+    "name": "Solingen Hbf",
+    "eva": "08000087"
+  },
+  {
+    "name": "Stuttgart Hbf",
+    "eva": "08000096"
+  },
+  {
+    "name": "Stuttgart Hbf",
+    "eva": "08098096"
+  },
+  {
+    "name": "Trier Hbf",
+    "eva": "08000134"
+  },
+  {
+    "name": "Tübingen Hbf",
+    "eva": "08000141"
+  },
+  {
+    "name": "Uelzen",
+    "eva": "08000168"
+  },
+  {
+    "name": "Ulm Hbf",
+    "eva": "08000170"
+  },
+  {
+    "name": "Weimar",
+    "eva": "08010366"
+  },
+  {
+    "name": "Wiesbaden Hbf",
+    "eva": "08000250"
+  },
+  {
+    "name": "Wolfsburg Hbf",
+    "eva": "08006552"
+  },
+  {
+    "name": "Worms Hbf",
+    "eva": "08000257"
+  },
+  {
+    "name": "Wuppertal Hbf",
+    "eva": "08000266"
+  },
+  {
+    "name": "Würzburg Hbf",
+    "eva": "08000260"
+  }
+]

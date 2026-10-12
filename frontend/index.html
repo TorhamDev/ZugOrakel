@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#120a1f">
+    <title>ZugOrakel - Train Delay Predictor</title>
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #120a1f;
+            --surface: #1f1338;
+            --surface-2: #2a1a4a;
+            --ink: #0a0514;
+            --line: #42306d;
+            --violet: #9d7bff;
+            --violet-soft: #cdbcff;
+            --amber: #ffb347;
+            --text: #f0eaff;
+            --muted: #ab9dcc;
+            --ok: #6ee7a8;
+            --warn: #ffb347;
+            --bad: #ff7a90;
+            --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+            --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            --shadow: 6px 6px 0 var(--ink);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--sans);
+            background-color: var(--bg);
+            background-image: radial-gradient(rgba(157, 123, 255, 0.16) 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* Subtle retro scanlines */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.07) 0 1px, transparent 1px 3px);
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        #trainNetworkCanvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .hero {
+            position: relative;
+            z-index: 1;
+            padding: 48px 0 36px;
+        }
+
+        .hero-inner {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .logo {
+            flex: none;
+            width: 72px;
+            height: 72px;
+            border: 2px solid var(--violet);
+            background: var(--surface);
+            box-shadow: 4px 4px 0 var(--ink);
+            display: grid;
+            place-items: center;
+        }
+
+        .logo svg {
+            width: 44px;
+            height: 44px;
+        }
+
+        .eyebrow {
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--amber);
+            margin-bottom: 4px;
+        }
+
+        h1 {
+            font-family: var(--mono);
+            font-size: clamp(2rem, 6vw, 3.4rem);
+            line-height: 1.05;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        h1 span {
+            color: var(--violet);
+        }
+
+        .tagline {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        /* Rail band with full-width train animation */
+        .rail {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            overflow: hidden;
+            background: rgba(10, 5, 20, 0.55);
+            border-top: 2px solid var(--line);
+            border-bottom: 2px solid var(--line);
+            padding: 10px 0 0;
+            margin-bottom: 48px;
+        }
+
+        .lane {
+            position: relative;
+            height: 80px;
+        }
+
+        .lane::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 8px;
+            background:
+                linear-gradient(var(--violet), var(--violet)) top / 100% 2px no-repeat,
+                repeating-linear-gradient(90deg, var(--line) 0 4px, transparent 4px 14px) bottom / 100% 5px no-repeat;
+        }
+
+        .train {
+            position: absolute;
+            left: 0;
+            bottom: 7px;
+            width: clamp(220px, 28vw, 340px);
+            will-change: transform;
+        }
+
+        .train svg {
+            display: block;
+            width: 100%;
+            height: auto;
+            shape-rendering: crispEdges;
+        }
+
+        .lane-a .train {
+            animation: driveRight 18s linear infinite;
+        }
+
+        .lane-b .train {
+            animation: driveLeft 26s linear infinite;
+            animation-delay: -11s;
+        }
+
+        @keyframes driveRight {
+            from { transform: translateX(-100%); }
+            to   { transform: translateX(100vw); }
+        }
+
+        @keyframes driveLeft {
+            from { transform: translateX(100vw) scaleX(-1); }
+            to   { transform: translateX(-100%) scaleX(-1); }
+        }
+
+        .t-body   { fill: var(--surface-2); stroke: var(--violet); stroke-width: 2; }
+        .t-nose   { fill: var(--violet); stroke: var(--violet-soft); stroke-width: 2; }
+        .t-win    { fill: var(--amber); }
+        .t-stripe { fill: var(--amber); }
+        .t-coupler{ fill: var(--violet-soft); }
+        .t-light  { fill: #fff3d6; }
+        .t-wheel  { fill: var(--ink); stroke: var(--violet-soft); stroke-width: 2; }
+
+        /* Layout */
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(31, 19, 56, 0.93);
+            border: 2px solid var(--line);
+            border-radius: 6px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: var(--mono);
+            font-size: 0.95rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--violet-soft);
+            margin-bottom: 28px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--amber);
+            flex: none;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--line);
+            border-radius: 4px;
+            background: #150c27;
+            color: var(--text);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.15s ease;
+        }
+
+        input::placeholder {
+            color: var(--muted);
+            opacity: 0.8;
+        }
+
+        input:hover, select:hover {
+            border-color: var(--violet);
+        }
+
+        input:focus-visible, select:focus-visible, button:focus-visible {
+            outline: 3px solid var(--amber);
+            outline-offset: 2px;
+            border-color: var(--amber);
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 8px;
+            padding: 14px 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--amber);
+            color: #1b0f2e;
+            border: 2px solid var(--ink);
+            border-radius: 4px;
+            font-family: var(--mono);
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 4px 4px 0 var(--ink);
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+
+        button svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translate(-1px, -1px);
+            box-shadow: 5px 5px 0 var(--ink);
+        }
+
+        button:active:not(:disabled) {
+            transform: translate(3px, 3px);
+            box-shadow: 1px 1px 0 var(--ink);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Results */
+        .results-card {
+            min-height: 420px;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            padding: 72px 16px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .empty-state svg {
+            width: 72px;
+            height: 72px;
+            color: var(--violet);
+            opacity: 0.8;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 16px;
+            padding: 12px 0;
+            border-bottom: 1px dashed var(--line);
+        }
+
+        .result-label {
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            flex: none;
+        }
+
+        .result-value {
+            text-align: right;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+        }
+
+        /* Departure-board style delay display */
+        .delay-board {
+            margin: 24px 0 12px;
+            padding: 20px 16px;
+            background: #0e0719;
+            border: 2px solid var(--line);
+            border-radius: 4px;
+            text-align: center;
+            font-family: var(--mono);
+            font-size: clamp(1.6rem, 5vw, 2.4rem);
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .delay-status {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            opacity: 0.85;
+        }
+
+        .delay-on-time { color: var(--ok); }
+        .delay-warning { color: var(--warn); }
+        .delay-severe  { color: var(--bad); }
+
+        .note {
+            margin-top: 20px;
+            padding: 12px 14px;
+            border-left: 3px solid var(--violet);
+            background: rgba(157, 123, 255, 0.08);
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            min-height: 240px;
+        }
+
+        .loading span {
+            width: 14px;
+            height: 14px;
+            background: var(--amber);
+            animation: blockPulse 1s steps(2, end) infinite;
+        }
+
+        .loading span:nth-child(2) { animation-delay: 0.15s; }
+        .loading span:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes blockPulse {
+            0%, 100% { opacity: 0.2; }
+            50%      { opacity: 1; }
+        }
+
+        /* Error */
+        .error-box {
+            border: 2px solid var(--bad);
+            border-radius: 4px;
+            background: rgba(255, 122, 144, 0.08);
+            padding: 16px;
+            color: #ffd3da;
+        }
+
+        .error-box strong {
+            font-family: var(--mono);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-right: 8px;
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 1;
+            margin-top: 64px;
+            padding: 28px 24px 40px;
+            text-align: center;
+            border-top: 2px solid var(--line);
+            color: var(--muted);
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+        }
+
+        @media (max-width: 600px) {
+            .hero { padding: 32px 0 24px; }
+            .hero-inner { gap: 16px; }
+            .logo { width: 56px; height: 56px; }
+            .logo svg { width: 34px; height: 34px; }
+            .card { padding: 22px; }
+            .container { padding: 0 16px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .lane-a .train, .lane-b .train { animation: none; }
+            .lane-a .train { transform: translateX(8vw); }
+            .lane-b .train { transform: translateX(50vw) scaleX(-1); }
+            .loading span { animation: none; opacity: 1; }
+            button { transition: none; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="trainNetworkCanvas" aria-hidden="true"></canvas>
+
+    <!-- Shared train artwork -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <defs>
+            <g id="train-art">
+                <rect class="t-body" x="2" y="12" width="108" height="38"/>
+                <rect class="t-body" x="116" y="12" width="108" height="38"/>
+                <path class="t-nose" d="M230 12h64l38 20v18H230z"/>
+                <g class="t-win">
+                    <rect x="12" y="20" width="16" height="12"/>
+                    <rect x="36" y="20" width="16" height="12"/>
+                    <rect x="60" y="20" width="16" height="12"/>
+                    <rect x="84" y="20" width="16" height="12"/>
+                    <rect x="126" y="20" width="16" height="12"/>
+                    <rect x="150" y="20" width="16" height="12"/>
+                    <rect x="174" y="20" width="16" height="12"/>
+                    <rect x="198" y="20" width="16" height="12"/>
+                    <rect x="242" y="20" width="34" height="14"/>
+                </g>
+                <rect class="t-stripe" x="2" y="42" width="322" height="3"/>
+                <rect class="t-coupler" x="110" y="38" width="6" height="5"/>
+                <rect class="t-coupler" x="224" y="38" width="6" height="5"/>
+                <circle class="t-light" cx="326" cy="36" r="3"/>
+                <circle class="t-wheel" cx="24" cy="54" r="7"/>
+                <circle class="t-wheel" cx="46" cy="54" r="7"/>
+                <circle class="t-wheel" cx="78" cy="54" r="7"/>
+                <circle class="t-wheel" cx="100" cy="54" r="7"/>
+                <circle class="t-wheel" cx="138" cy="54" r="7"/>
+                <circle class="t-wheel" cx="160" cy="54" r="7"/>
+                <circle class="t-wheel" cx="192" cy="54" r="7"/>
+                <circle class="t-wheel" cx="214" cy="54" r="7"/>
+                <circle class="t-wheel" cx="250" cy="54" r="7"/>
+                <circle class="t-wheel" cx="272" cy="54" r="7"/>
+                <circle class="t-wheel" cx="310" cy="54" r="7"/>
+            </g>
+        </defs>
+    </svg>
+
+    <header class="hero">
+        <div class="container hero-inner">
+            <div class="logo" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#cdbcff" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
+                    <rect x="5" y="3" width="14" height="14"/>
+                    <path d="M5 11h14"/>
+                    <circle cx="9" cy="14" r="0.8" fill="#ffb347" stroke="#ffb347"/>
+                    <circle cx="15" cy="14" r="0.8" fill="#ffb347" stroke="#ffb347"/>
+                    <path d="M8 17l-3 4M16 17l3 4"/>
+                </svg>
+            </div>
+            <div>
+                <p class="eyebrow">Delay forecast</p>
+                <h1>Zug<span>Orakel</span></h1>
+                <p class="tagline">Predict train delays with machine learning.</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Full-width train lanes -->
+    <section class="rail" aria-hidden="true">
+        <div class="lane lane-a">
+            <div class="train"><svg viewBox="0 0 340 64"><use href="#train-art"/></svg></div>
+        </div>
+        <div class="lane lane-b">
+            <div class="train"><svg viewBox="0 0 340 64"><use href="#train-art"/></svg></div>
+        </div>
+    </section>
+
+    <main class="container content">
+        <section class="card" aria-labelledby="formTitle">
+            <h2 class="card-title" id="formTitle">Check delay</h2>
+            <form id="predictionForm">
+                <div class="form-group">
+                    <label for="stationSelect">Station</label>
+                    <select id="stationSelect" required>
+                        <option value="">Select a station...</option>
+                    </select>
+                </div>
+
+                <input type="hidden" id="eva" name="eva">
+
+                <div class="form-group">
+                    <label for="trainType">Train type</label>
+                    <select id="trainType" required>
+                        <option value="">Select train type...</option>
+                        <option value="ICE">ICE (InterCityExpress)</option>
+                        <option value="IC">IC (InterCity)</option>
+                        <option value="EC">EC (EuroCity)</option>
+                        <option value="RE">RE (RegionalExpress)</option>
+                        <option value="RB">RB (Regionalbahn)</option>
+                        <option value="S">S-Bahn</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="stationNum">Station number on line</label>
+                    <input type="number" id="stationNum" placeholder="e.g., 5" min="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="datetime">Date and time</label>
+                    <input type="datetime-local" id="datetime" required>
+                </div>
+
+                <button type="submit">
+                    Predict delay
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+                </button>
+            </form>
+        </section>
+
+        <section class="card results-card" aria-labelledby="resultsTitle">
+            <h2 class="card-title" id="resultsTitle">Prediction</h2>
+            <div id="resultsContainer" aria-live="polite">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" aria-hidden="true">
+                        <rect x="5" y="3" width="14" height="14"/>
+                        <path d="M5 11h14"/>
+                        <path d="M8 17l-3 4M16 17l3 4"/>
+                        <circle cx="9" cy="14" r="0.8" fill="currentColor"/>
+                        <circle cx="15" cy="14" r="0.8" fill="currentColor"/>
+                    </svg>
+                    <p>Submit your train details to see a delay prediction.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>ZUGORAKEL &middot; CatBoost &middot; FastAPI</p>
+    </footer>
+
+    <script>
+        // Germany rail network background (real lat/lon projected to the viewport)
+        function initTrainNetworkBackground() {
+            const canvas = document.getElementById('trainNetworkCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            const stations = {
+                Hamburg: [53.55, 10.0], Berlin: [52.52, 13.4], Hannover: [52.38, 9.74],
+                Bremen: [53.08, 8.8], Kiel: [54.32, 10.13], Rostock: [54.09, 12.1],
+                Dortmund: [51.51, 7.46], Essen: [51.45, 7.01], 'Düsseldorf': [51.22, 6.79],
+                'Köln': [50.94, 6.96], Koblenz: [50.35, 7.59], Frankfurt: [50.11, 8.68],
+                Mannheim: [49.48, 8.47], Karlsruhe: [49.0, 8.4], Freiburg: [47.99, 7.84],
+                Stuttgart: [48.78, 9.18], Ulm: [48.4, 9.98], Augsburg: [48.37, 10.89],
+                'München': [48.14, 11.56], 'Nürnberg': [49.45, 11.08], 'Würzburg': [49.8, 9.94],
+                Regensburg: [49.01, 12.1], Passau: [48.57, 13.43], Fulda: [50.55, 9.68],
+                Kassel: [51.31, 9.49], 'Münster': [51.96, 7.63], Bielefeld: [52.02, 8.53],
+                Magdeburg: [52.13, 11.63], Erfurt: [50.97, 11.03], Leipzig: [51.34, 12.38],
+                Dresden: [51.04, 13.73], 'Saarbrücken': [49.24, 6.99],
+            };
+
+            const hubs = new Set(['Hamburg', 'Berlin', 'Frankfurt', 'München', 'Köln', 'Hannover', 'Leipzig', 'Stuttgart']);
+
+            const links = [
+                ['Hamburg', 'Berlin'], ['Hamburg', 'Hannover'], ['Hamburg', 'Bremen'], ['Hamburg', 'Kiel'],
+                ['Hamburg', 'Rostock'], ['Rostock', 'Berlin'], ['Bremen', 'Hannover'], ['Bremen', 'Münster'],
+                ['Hannover', 'Magdeburg'], ['Magdeburg', 'Berlin'], ['Hannover', 'Bielefeld'], ['Bielefeld', 'Dortmund'],
+                ['Bielefeld', 'Münster'], ['Münster', 'Dortmund'], ['Dortmund', 'Essen'], ['Essen', 'Düsseldorf'],
+                ['Düsseldorf', 'Köln'], ['Köln', 'Koblenz'], ['Köln', 'Frankfurt'], ['Koblenz', 'Frankfurt'],
+                ['Frankfurt', 'Mannheim'], ['Mannheim', 'Karlsruhe'], ['Karlsruhe', 'Freiburg'], ['Mannheim', 'Stuttgart'],
+                ['Karlsruhe', 'Stuttgart'], ['Stuttgart', 'Ulm'], ['Ulm', 'Augsburg'], ['Augsburg', 'München'],
+                ['Frankfurt', 'Fulda'], ['Fulda', 'Kassel'], ['Kassel', 'Hannover'], ['Fulda', 'Würzburg'],
+                ['Frankfurt', 'Würzburg'], ['Würzburg', 'Nürnberg'], ['Nürnberg', 'München'], ['Nürnberg', 'Regensburg'],
+                ['Regensburg', 'Passau'], ['Regensburg', 'München'], ['Nürnberg', 'Erfurt'], ['Erfurt', 'Leipzig'],
+                ['Leipzig', 'Dresden'], ['Leipzig', 'Berlin'], ['Leipzig', 'Magdeburg'], ['Berlin', 'Dresden'],
+                ['Saarbrücken', 'Mannheim'], ['Stuttgart', 'Nürnberg'], ['Kassel', 'Erfurt'],
+            ];
+
+            const LAT_MAX = 55.1, LAT_MIN = 47.2, LON_MIN = 5.8, LON_MAX = 15.2;
+            const LON_SCALE = Math.cos(51 * Math.PI / 180);
+
+            function draw() {
+                const dpr = window.devicePixelRatio || 1;
+                const w = window.innerWidth;
+                const h = window.innerHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                ctx.clearRect(0, 0, w, h);
+
+                const s = (h * 0.92) / (LAT_MAX - LAT_MIN);
+                const mapW = (LON_MAX - LON_MIN) * LON_SCALE * s;
+                const cx = w > 1100 ? Math.min(w * 0.8, w - mapW / 2 - 16) : w / 2;
+                const x0 = cx - mapW / 2;
+                const project = ([lat, lon]) => [
+                    x0 + (lon - LON_MIN) * LON_SCALE * s,
+                    h * 0.04 + (LAT_MAX - lat) * s,
+                ];
+
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = 'rgba(157, 123, 255, 0.3)';
+                ctx.lineWidth = 1.5;
+                links.forEach(([a, b]) => {
+                    const [x1, y1] = project(stations[a]);
+                    const [x2, y2] = project(stations[b]);
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                });
+
+                ctx.font = '11px ui-monospace, Menlo, Consolas, monospace';
+                Object.entries(stations).forEach(([name, coords]) => {
+                    const [x, y] = project(coords);
+                    const hub = hubs.has(name);
+                    ctx.fillStyle = hub ? '#ffb347' : 'rgba(205, 188, 255, 0.6)';
+                    ctx.beginPath();
+                    ctx.arc(x, y, hub ? 4 : 2.8, 0, Math.PI * 2);
+                    ctx.fill();
+                    if (hub) {
+                        ctx.strokeStyle = 'rgba(255, 179, 71, 0.35)';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 8, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.fillStyle = 'rgba(205, 188, 255, 0.45)';
+                        ctx.fillText(name.toUpperCase(), x + 12, y + 4);
+                    }
+                });
+            }
+
+            draw();
+            window.addEventListener('resize', draw);
+        }
+
+        initTrainNetworkBackground();
+
+        const API_URL = '/predict';
+        const form = document.getElementById('predictionForm');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const stationSelect = document.getElementById('stationSelect');
+        const evaInput = document.getElementById('eva');
+
+        // Load stations from JSON. Stations that share a name (e.g. the S-Bahn and the
+        // main-line platforms of a Hbf) have different EVA numbers and different delay
+        // statistics in the training data, so every EVA is kept and shown with its number.
+        async function loadStations() {
+            try {
+                const response = await fetch('/stations.json');
+                if (!response.ok) throw new Error('Failed to load stations');
+
+                const stations = await response.json();
+                stations.sort((a, b) => a.name.localeCompare(b.name) || a.eva.localeCompare(b.eva));
+
+                const nameCount = {};
+                stations.forEach(station => {
+                    nameCount[station.name] = (nameCount[station.name] || 0) + 1;
+                });
+
+                stations.forEach(station => {
+                    const option = document.createElement('option');
+                    option.value = station.eva;
+                    option.textContent = nameCount[station.name] > 1
+                        ? `${station.name} (${station.eva})`
+                        : station.name;
+                    option.dataset.eva = station.eva;
+                    option.dataset.name = station.name;
+                    stationSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading stations:', error);
+                stationSelect.innerHTML = '<option value="">Error loading stations</option>';
+            }
+        }
+
+        stationSelect.addEventListener('change', function () {
+            evaInput.value = this.value || '';
+        });
+
+        // Default datetime: now
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('datetime').value = now.toISOString().slice(0, 16);
+
+        loadStations();
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await makePrediction();
+        });
+
+        async function makePrediction() {
+            if (!form.checkValidity()) {
+                showError('Please fill in all fields correctly');
+                return;
+            }
+
+            const stationName = stationSelect.options[stationSelect.selectedIndex].dataset.name;
+            const eva = evaInput.value.trim();
+            const trainType = document.getElementById('trainType').value;
+            const stationNum = parseInt(document.getElementById('stationNum').value);
+            const datetime = document.getElementById('datetime').value;
+
+            showLoading();
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        station_name: stationName,
+                        eva: eva,
+                        train_type: trainType,
+                        station_num_on_line: stationNum,
+                        datetime: datetime.replace('T', ' ') + ':00'
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Prediction failed');
+                }
+
+                displayResults(await response.json());
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message || 'Failed to get prediction. Please check your input and try again.');
+            }
+        }
+
+        function showLoading() {
+            resultsContainer.innerHTML = `
+                <div class="loading" role="status" aria-label="Loading prediction">
+                    <span></span><span></span><span></span>
+                </div>
+            `;
+        }
+
+        function displayResults(data) {
+            const delay = data.predicted_delay_minutes;
+            const delayClass = delay <= 0 ? 'delay-on-time' : (delay <= 10 ? 'delay-warning' : 'delay-severe');
+            const delayText = delay <= 0 ? 'On time' : `${Math.round(delay)} min delay`;
+            const delayStatus = delay <= 0 ? 'On time' : delay <= 10 ? 'Minor delay' : 'Significant delay';
+
+            const dateObj = new Date(data.datetime);
+            const formattedDate = dateObj.toLocaleString('en-DE', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            resultsContainer.innerHTML = `
+                <div class="result-row">
+                    <span class="result-label">Station</span>
+                    <span class="result-value">${escapeHtml(data.station_name)}</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Train type</span>
+                    <span class="result-value">${escapeHtml(data.train_type)}</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Scheduled</span>
+                    <span class="result-value">${escapeHtml(formattedDate)}</span>
+                </div>
+                <div class="delay-board ${delayClass}">
+                    ${escapeHtml(delayText)}
+                    <span class="delay-status">${escapeHtml(delayStatus)}</span>
+                </div>
+                <p class="note">
+                    Based on historical train data. Actual delays may vary due to real-time conditions.
+                </p>
+            `;
+        }
+
+        function showError(message) {
+            resultsContainer.innerHTML = `
+                <div class="error-box" role="alert">
+                    <strong>Error</strong><span>${escapeHtml(message)}</span>
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
