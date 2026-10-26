@@ -40,7 +40,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
             "day_of_week": day_of_week.astype("Int8"),
             "is_weekend": day_of_week.isin([5, 6]).astype("int8"),
             "station_num_on_line": df["train_line_station_num"],
-            "delay_in_min": df["delay_in_min"].clip(lower=0, upper=120).astype("float32"),
+            "delay_in_min": df["delay_in_min"].clip(lower=0).astype("float32"),
         }
     )
 
